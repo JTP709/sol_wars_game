@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var db = require('./store/db');
+var jwt = require('jwt-simple');
 
 var indexRouter = require('./routes/index');
 var testAPIRouter = require('./routes/testAPI');
@@ -12,7 +13,7 @@ var testAPIRouter = require('./routes/testAPI');
 var app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+// app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use(cors());
@@ -25,6 +26,17 @@ app.use(express.static('../client/build'));
 
 app.use('/', indexRouter);
 app.use('/testAPI', testAPIRouter);
+
+//Auth validator
+app.get('/auth', (request, response) => {
+  var token = request.get('Authorization');
+  console.log('token: ', token);
+  var decoded = jwt.decode(request.get('Authorization'), 'EeEbTnHd71OgY-i5PsW584ZN');
+  console.log('DECODED: ', decoded)
+  response.status(200);
+})
+
+// db stuff - TODO: remove1
 app.get('/users', db.getUsers);
 app.get('/users/:id', db.getUserById);
 app.post('/users', db.createUser);
@@ -44,7 +56,8 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  console.error(err)
+  // res.render('error');
 });
 
 module.exports = app;
