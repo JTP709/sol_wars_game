@@ -26,7 +26,7 @@ export const validateGoogleSignIn = response => {
     ).then (() => {
       dispatch(signInSuccess())
     }).catch(() => {
-      console.log("catch)")
+      console.log("catch")
       dispatch(signInFailure())
     });
   };

@@ -29,7 +29,7 @@ const createUser = (request, response) => {
 
   pool.query('INSERT INTO users (name, email, id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [name, email, googleId], (error, result) => {
     if (error) { throw error }
-    response.statusStatus(201);
+    response.sendStatus(201);
   });
 };
 

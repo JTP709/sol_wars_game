@@ -10,7 +10,8 @@ import { connect } from 'react-redux';
 import { getIsSignedIn } from '../redux/selectors';
 
 import Home from './Home';
-import SignIn from './SignIn';
+import Login from './Login';
+import SignOutButton from './SignOutButton';
 
 const mapStateToProps = state => ({
   isSignedIn: getIsSignedIn(state)
@@ -26,7 +27,7 @@ function Users() {
 
 const AppRouter = ({ isSignedIn }) => {
   const isAuthenticated = isSignedIn && Boolean(localStorage.getItem('token'));
-
+  
   return (
     <Router>
       <div>
@@ -42,7 +43,9 @@ const AppRouter = ({ isSignedIn }) => {
               <Link to='/users'>Users</Link>
             </li>
             <li>
-              <SignIn />
+              {
+                !isAuthenticated ? <Link to='/login'>Sign In</Link> : <SignOutButton />
+              }
             </li>
           </ul>
         </nav>
@@ -54,6 +57,9 @@ const AppRouter = ({ isSignedIn }) => {
           </Route>
           <Route path="/users" >
             { !isAuthenticated ? <Redirect to="/" /> : <Users /> }
+          </Route>
+          <Route path="/login" >
+            { isAuthenticated ? <Redirect to="/" /> : <Login /> }
           </Route>
         </Switch>
 
