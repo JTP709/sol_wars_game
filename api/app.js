@@ -5,8 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var db = require('./store/db');
-var jwt = require('jwt-simple');
 
+var { verifyAuth } = require('./auth/googleVerify')
 var indexRouter = require('./routes/index');
 var testAPIRouter = require('./routes/testAPI');
 
@@ -27,19 +27,13 @@ app.use(express.static('../client/build'));
 app.use('/', indexRouter);
 app.use('/testAPI', testAPIRouter);
 
-//Auth validator
-app.get('/auth', (request, response) => {
-  var token = request.get('Authorization');
-  console.log('token: ', token);
-  var decoded = jwt.decode(request.get('Authorization'), 'EeEbTnHd71OgY-i5PsW584ZN');
-  console.log('DECODED: ', decoded)
-  response.status(200);
-})
+// auth validation
+app.get('/auth', verifyAuth((_,response) => response.sendStatus(200)));
 
-// db stuff - TODO: remove1
+// db stuff
 app.get('/users', db.getUsers);
 app.get('/users/:id', db.getUserById);
-app.post('/users', db.createUser);
+app.post('/users', verifyAuth(db.createUser));
 app.put('/users/:id', db.updateUser);
 app.delete('/users/:id', db.deleteUser);
 

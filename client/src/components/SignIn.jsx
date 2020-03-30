@@ -2,24 +2,24 @@ import React from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { GoogleLogin, GoogleLogout } from 'react-google-login';
-import { googleCLientId } from '../application-data';
+import { googleClientId } from '../application-data';
 import { connect } from 'react-redux';
 import { getIsSignedIn } from '../redux/selectors';
-import { signInSuccess, signInFailure, signOutSuccess } from '../redux/actions';
+import { validateGoogleSignIn, signInFailure, signOutSuccess } from '../redux/actions';
 
 const mapStateToProps = state => ({
   isSignedIn: getIsSignedIn(state)
 })
 
 const mapDispatchToProps = {
-  signInSuccess,
+  validateGoogleSignIn,
   signInFailure,
   signOutSuccess
 }
 
 const SignIn = ({
   isSignedIn,
-  signInSuccess,
+  validateGoogleSignIn,
   signInFailure,
   signOutSuccess
 }) => {
@@ -27,17 +27,12 @@ const SignIn = ({
 
   const signInSuccessCallback = response => {
     localStorage.setItem('token', response.tokenId);
-    signInSuccess();
+    validateGoogleSignIn(response);
     history.push('/');
-    // const url = `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${response.tokenId}`;
-    
-    // fetch(url)
-    // .then(res => res.text())
-    // .then(res => console.log(res))
-    // .catch(err => console.error(err));
   };
   
   const signInFailureCallback = () => {
+    console.log('sign in failure callback')
     localStorage.removeItem('token');
     signInFailure();
     history.push('/');
@@ -49,9 +44,9 @@ const SignIn = ({
     history.push('/');
   }
 
-  if(!isSignedIn && !localStorage.getItem('token')) {
+  if(!isSignedIn &&!localStorage.getItem('token')) {
     return (<GoogleLogin
-      clientId={googleCLientId}
+      clientId={googleClientId}
       buttonText='Login with Google'
       onSuccess={signInSuccessCallback}
       onFailure={signInFailureCallback}
@@ -60,7 +55,7 @@ const SignIn = ({
     />)
   } else {
     return (<GoogleLogout
-      clientId={googleCLientId}
+      clientId={googleClientId}
       buttonText="Logout"
       onLogoutSuccess={signOutSuccessCallback}
     />)
