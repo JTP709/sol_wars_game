@@ -1,21 +1,29 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { getPlayerId } from '../redux/selectors';
 import socket from '../socket/socket';
+
+import { getPlayerId } from '../redux/selectors';
+import { setGameId } from '../redux/actions;'
 
 const mapStateToProps = state => ({
   playerId: getPlayerId(state)
 });
 
-const GameManagement = ({playerId}) => {
+const mapDispatchToProps = {
+  setGameId
+}
+
+const GameManagement = ({ playerId, setGameId }) => {
   const token = localStorage.getItem('token');
   const startGame = () => {
     console.log('starting game ...')
     socket.emit('startGame', {token, playerId});
     socket.on('gameStartSuccess', data => {
+      setGameId({ gameId: data.gameId });
+      socket.join(data.gameId);
       console.log('LET THE GAMES BEGIN!', data.gameId)
     });
-    socket.on('gameStartError', () => console.error('There was an error on the server while trying to start the game.'))
+    socket.on('gameStartError', () => console.error('There was an error on the server while trying to start the game.'));
   }
   return <div>
     <button onClick={startGame}>Start A New Game</button>
@@ -30,4 +38,7 @@ const GameManagement = ({playerId}) => {
   </div>
 }
 
-export default connect(mapStateToProps)(GameManagement);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(GameManagement);

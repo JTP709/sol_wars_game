@@ -3,6 +3,7 @@ import { ACTIONS } from './constants';
 const defaultState = {
   isSignedIn: false,
   playerId: null,
+  gameId: null,
 }
 
 export default (state = defaultState, action) => {
@@ -19,6 +20,11 @@ export default (state = defaultState, action) => {
         ...state,
         isSignedIn: false,
         playerId: null
+      }
+    case ACTIONS.SET_GAME_ID:
+      return{
+        ...state,
+        gameId: payload.gameId
       }
     default:
       return state

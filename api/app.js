@@ -65,11 +65,11 @@ io.on('connection', function(socket) {
       .then(() => db.createNewGame(data.playerId))
       .then(response => io.emit('gameStartSuccess', { gameId: response.gameId}))
       .catch(error => {
-        console.error('socket_startGame_error: ', error)
-        io.emit('gameStartError')
-      })
-  })
-})
+        console.error('socket_startGame_error: ', error);
+        io.emit('gameStartError');
+      });
+  });
+});
 
 
 // catch 404 and forward to error handler
