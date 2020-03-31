@@ -1,9 +1,7 @@
 import React from 'react';
 
-import FetchApiTest from './FetchApiTest';
-
-export default () => (
-  <div className="App">
+export default () => {
+  return <div className="App">
     <header className="App-header">        
       <a
         className="App-link"
@@ -14,8 +12,8 @@ export default () => (
         Sol-Wars Game
       </a>
 
-      <FetchApiTest />
+      {/* <FetchApiTest /> */}
 
     </header>
   </div>
-)
+}

@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { ACTIONS } from './constants';
 
-export const signInSuccess = () => ({ type: ACTIONS.SIGNIN_SUCCESS });
+export const signInSuccess = payload => ({
+  type: ACTIONS.SIGNIN_SUCCESS,
+  payload
+});
 
 export const signInFailure = () => ({ type: ACTIONS.SIGNIN_FAILURE });
 
@@ -24,7 +27,7 @@ export const validateGoogleSignIn = response => {
       data,
       config
     ).then (() => {
-      dispatch(signInSuccess())
+      dispatch(signInSuccess({ playerId: googleId }))
     }).catch(() => {
       console.log("catch")
       dispatch(signInFailure())

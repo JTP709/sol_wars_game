@@ -21,8 +21,8 @@ class FetchApiTest extends Component {
     socket.emit('emit data!', { data: 'much data!' });
     socket.emit('user', { user: 'Jon' });
     socket.on('greeting message', msg => {
-      console.log('msg: ', msg)
-      this.setState({ ...this.state, greeting: msg })
+      console.log('msg: ', msg);
+      this.setState({ ...this.state, greeting: msg });
     })
   }
 

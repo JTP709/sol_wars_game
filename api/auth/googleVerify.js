@@ -3,26 +3,26 @@ const googleCredentials = require('../application-data');
 
 const client = new OAuth2Client(googleCredentials.googleClientId);
 
-const verifyAuth = callback => (request, response) => {
+const googleVerify = tokenId => new Promise(async (resolve, reject) => {
+  const ticket = await client.verifyIdToken({
+    idToken: tokenId,
+    audience: googleCredentials.googleClientId
+  });
+  const payload = ticket.getPayload();
+  const userid = payload['sub'];
+  userid === userid ?
+    resolve() :
+    reject()
+});
+
+const verifyAuthHttpWrapper = callback => (request, response) => {
   const { authorization: tokenId, userid } = request.headers;
   
   if (!tokenId || !userid) {
     response.sendStatus(400)
   }
 
-  const googleVerify = new Promise(async (resolve, reject) => {
-    const ticket = await client.verifyIdToken({
-      idToken: tokenId,
-      audience: googleCredentials.googleClientId
-    });
-    const payload = ticket.getPayload();
-    const userid = payload['sub'];
-    userid === userid ?
-      resolve() :
-      reject()
-  });
-
-  return googleVerify
+  return googleVerify(tokenId)
     .then(callback(request, response))
     .catch((e) => { 
       console.error(e);
@@ -31,5 +31,6 @@ const verifyAuth = callback => (request, response) => {
 }
 
 module.exports = {
-  verifyAuth
+  verifyAuthHttpWrapper,
+  googleVerify
 }

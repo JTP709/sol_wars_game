@@ -12,6 +12,7 @@ import { getIsSignedIn } from '../redux/selectors';
 import Home from './Home';
 import Login from './Login';
 import SignOutButton from './SignOutButton';
+import GameManagement from './GameManagement';
 
 const mapStateToProps = state => ({
   isSignedIn: getIsSignedIn(state)
@@ -51,15 +52,17 @@ const AppRouter = ({ isSignedIn }) => {
         </nav>
 
         <Switch>
-          <Route path="/" exact component={Home}/>
+          <Route path="/" exact component={Home} />
+          <Route path="/login" component={Login} />
+          {/* Authenticated Routes */}
           <Route path="/about" >
-            { !isAuthenticated ? <Redirect to="/" /> : <About /> }          
+            { !isAuthenticated ? <Redirect to="/login" /> : <About /> }          
           </Route>
           <Route path="/users" >
-            { !isAuthenticated ? <Redirect to="/" /> : <Users /> }
+            { !isAuthenticated ? <Redirect to="/login" /> : <Users /> }
           </Route>
-          <Route path="/login" >
-            { isAuthenticated ? <Redirect to="/" /> : <Login /> }
+          <Route path="/gamesetup" >
+            { !isAuthenticated ? <Redirect to="/login" /> : <GameManagement /> }
           </Route>
         </Switch>
 

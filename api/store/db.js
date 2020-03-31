@@ -8,6 +8,8 @@ const pool = new Pool({
   port: 5432,
 });
 
+// HTTP Requests
+
 const getUsers = (request, response) => {
   pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
     if (error) { throw error }
@@ -56,10 +58,25 @@ const deleteUser = (request, response) => {
   })
 }
 
+// Socket Requests
+const createNewGame = playerId => {
+  return pool.query('INSERT INTO games (player_one_id, player_one_team) VALUES ($1, $2) RETURNING id', [playerId, 'Red'])
+    .then(results => ({ gameId: results.rows[0].id }))
+    .catch(error => {
+      console.error(error);
+      return error
+    });
+}
+
+const joinNewGame = playerId => {
+
+}
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  createNewGame
 }

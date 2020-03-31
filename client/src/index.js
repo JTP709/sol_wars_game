@@ -10,7 +10,6 @@ import * as serviceWorker from './serviceWorker';
 
 const store = createStore(
   rootReducer,
-  { isSignedIn: Boolean(localStorage.getItem('token'))},
   compose(
     applyMiddleware(thunk),
     window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()

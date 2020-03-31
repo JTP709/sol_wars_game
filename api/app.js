@@ -5,8 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var cors = require('cors');
 var db = require('./store/db');
+var socket_io = require('socket.io')
 
-var { verifyAuth } = require('./auth/googleVerify')
+var { verifyAuthHttpWrapper, googleVerify } = require('./auth/googleVerify');
 var indexRouter = require('./routes/index');
 var testAPIRouter = require('./routes/testAPI');
 
@@ -28,14 +29,48 @@ app.use('/', indexRouter);
 app.use('/testAPI', testAPIRouter);
 
 // auth validation
-app.get('/auth', verifyAuth((_,response) => response.sendStatus(200)));
+app.get('/auth', verifyAuthHttpWrapper((_,response) => response.sendStatus(200)));
 
 // db stuff
 app.get('/users', db.getUsers);
 app.get('/users/:id', db.getUserById);
-app.post('/users', verifyAuth(db.createUser));
+app.post('/users', verifyAuthHttpWrapper(db.createUser));
 app.put('/users/:id', db.updateUser);
 app.delete('/users/:id', db.deleteUser);
+
+// socket.io events
+
+var io = socket_io();
+app.io = io;
+
+io.on('connection', function(socket) {
+  console.log('a user connected');
+  
+  socket.on('disconnect', function() {
+    console.log('user disconnected');
+  });
+
+  // socket.on('emit data!', function(data) {
+  //   console.log('received data: ', data)
+  // });
+
+  // socket.on('user', function(data) {
+  //   console.log('user: ', data.user);
+  //   io.emit('greeting message', `hello, ${data.user}`)
+  // });
+
+  socket.on('startGame', function(data){
+    // console.log('data received: ', 'start game', data.token, data.playerId);
+    googleVerify(data.token)
+      .then(() => db.createNewGame(data.playerId))
+      .then(response => io.emit('gameStartSuccess', { gameId: response.gameId}))
+      .catch(error => {
+        console.error('socket_startGame_error: ', error)
+        io.emit('gameStartError')
+      })
+  })
+})
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
