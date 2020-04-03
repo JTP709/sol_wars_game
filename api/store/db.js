@@ -68,8 +68,13 @@ const createNewGame = playerId => {
     });
 }
 
-const joinNewGame = playerId => {
-
+const joinNewGame = (playerId, gameId) => {
+  return pool.query('UPDATE games SET player_two_id = $1, player_two_team = $2 WHERE id = $3', [playerId, 'Blue', gameId])
+    .then()
+    .catch(error => {
+      console.error(error);
+      return error
+    })
 }
 
 module.exports = {
@@ -78,5 +83,6 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  createNewGame
+  createNewGame,
+  joinNewGame
 }

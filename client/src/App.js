@@ -1,11 +1,13 @@
 import React from 'react';
 
-import './App.css';
-
+import socket from './socket/socket';
 import AppRouter from './components/AppRouter';
 
+import './App.css';
 
-function App() {
+const App = () => {
+  socket.on('playerTwoHasJoined', () => console.log('PLAYER TWO HAS ENTERED THE ARENA!'));
+  
   return <AppRouter />
 }
 

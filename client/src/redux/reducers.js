@@ -15,16 +15,18 @@ export default (state = defaultState, action) => {
         playerId: action.payload.playerId
       }
     case ACTIONS.SIGNIN_FAILURE:
+      return {
+        ...defaultState,
+        signInError: action.payload.error
+      }
     case ACTIONS.SIGNOUT_SUCCESS:
       return {
-        ...state,
-        isSignedIn: false,
-        playerId: null
+        ...defaultState
       }
     case ACTIONS.SET_GAME_ID:
       return{
         ...state,
-        gameId: payload.gameId
+        gameId: action.payload.gameId
       }
     default:
       return state

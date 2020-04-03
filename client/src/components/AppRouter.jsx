@@ -7,15 +7,17 @@ import {
   Redirect
 } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { getIsSignedIn } from '../redux/selectors';
+import { getIsSignedIn, getGameId } from '../redux/selectors';
 
 import Home from './Home';
 import Login from './Login';
 import SignOutButton from './SignOutButton';
 import GameManagement from './GameManagement';
+import WarRoom from './WarRoom';
 
 const mapStateToProps = state => ({
-  isSignedIn: getIsSignedIn(state)
+  isSignedIn: getIsSignedIn(state),
+  gameId: getGameId(state)
 })
 
 function About() {
@@ -26,7 +28,7 @@ function Users() {
   return <h2>Users</h2>
 }
 
-const AppRouter = ({ isSignedIn }) => {
+const AppRouter = ({ isSignedIn, gameId }) => {
   const isAuthenticated = isSignedIn && Boolean(localStorage.getItem('token'));
   
   return (
@@ -63,6 +65,9 @@ const AppRouter = ({ isSignedIn }) => {
           </Route>
           <Route path="/gamesetup" >
             { !isAuthenticated ? <Redirect to="/login" /> : <GameManagement /> }
+          </Route>
+          <Route path="/warroom" >
+            { !isAuthenticated && gameId ? <Redirect to="/login" /> : <WarRoom /> }
           </Route>
         </Switch>
 

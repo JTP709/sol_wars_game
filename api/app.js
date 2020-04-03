@@ -59,16 +59,34 @@ io.on('connection', function(socket) {
   //   io.emit('greeting message', `hello, ${data.user}`)
   // });
 
-  socket.on('startGame', function(data){
+  socket.on('startGameRequest', function(data){
     // console.log('data received: ', 'start game', data.token, data.playerId);
     googleVerify(data.token)
       .then(() => db.createNewGame(data.playerId))
-      .then(response => io.emit('gameStartSuccess', { gameId: response.gameId}))
+      .then(response => {
+        socket.join(response.gameId);
+        socket.emit('gameStartSuccess', { gameId: response.gameId});
+      })
       .catch(error => {
         console.error('socket_startGame_error: ', error);
-        io.emit('gameStartError');
+        socket.emit('gameStartError', data.playerId);
       });
   });
+
+  socket.on('joinGameRequest', function(data){
+    const { token, playerId, gameId } = data;
+    googleVerify(token)
+      .then(() => db.joinNewGame(playerId, gameId))
+      .then(() => {
+        socket.join(gameId);
+        socket.emit('joinGameSuccess', { gameId: gameId});
+        socket.to(gameId).emit('playerTwoHasJoined');
+      })
+      .catch(error => {
+        console.error('socket_joinGame_error', error);
+        socket.emit('joinGameError', gameId);
+      })
+  })
 });
 
 

@@ -4,12 +4,12 @@ import { ACTIONS } from './constants';
 
 // Authentication and Sign in
 
-export const signInSuccess = payload => ({
+export const signInSuccess = playerId => ({
   type: ACTIONS.SIGNIN_SUCCESS,
-  payload
+  payload: { playerId }
 });
 
-export const signInFailure = () => ({ type: ACTIONS.SIGNIN_FAILURE });
+export const signInFailure = error => ({ type: ACTIONS.SIGNIN_FAILURE, payload: { error } });
 
 export const signOutSuccess = () => ({ type: ACTIONS.SIGNOUT_SUCCESS });
 
@@ -31,16 +31,16 @@ export const validateGoogleSignIn = payload => {
       config
     ).then (() => {
       dispatch(signInSuccess({ playerId: googleId }))
-    }).catch(() => {
-      console.log("catch")
-      dispatch(signInFailure())
+    }).catch(error => {
+      console.error('google_validate_sign_in_error: ', error);
+      dispatch(signInFailure(error));
     });
   };
 };
 
 // Game Setup
 
-export const setGameId = payload => ({
+export const setGameId = gameId => ({
   type: ACTIONS.SET_GAME_ID,
-  payload
+  payload: { gameId }
 })
