@@ -26,7 +26,7 @@ export const validateGoogleSignIn = payload => {
 
   return dispatch => {
     axios.post(
-      'http://localhost:9000/api/users',
+      'http://localhost:9000/users',
       data,
       config
     ).then (() => {

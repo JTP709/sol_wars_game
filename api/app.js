@@ -15,6 +15,7 @@ var app = express();
 
 // view engine setup
 // app.set('views', path.join(__dirname, 'views'));
+// app.set('react-app-dir', path.join(__dirname, '/../client/build'))
 app.set('view engine', 'jade');
 
 app.use(cors());
@@ -23,25 +24,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static('../client/build'));
+app.use(express.static(path.join(__dirname, '/../client/build')));
 
 // app.use('*', indexRouter);
 app.use('/testAPI', testAPIRouter);
 
 // auth validation
-app.get('/api/auth', verifyAuthHttpWrapper((_,response) => response.sendStatus(200)));
+app.get('/auth', verifyAuthHttpWrapper((_,response) => response.sendStatus(200)));
 
 // db stuff
-app.get('/api/users', db.getUsers);
-app.get('/api/users/:id', db.getUserById);
-app.post('/api/users', verifyAuthHttpWrapper(db.createUser));
-app.put('/api/users/:id', db.updateUser);
-app.delete('/api/users/:id', db.deleteUser);
+app.get('/users', db.getUsers);
+app.get('/users/:id', db.getUserById);
+app.post('/users', verifyAuthHttpWrapper(db.createUser));
+app.put('/users/:id', db.updateUser);
+app.delete('/users/:id', db.deleteUser);
 
 // react app
 app.get('*', function(req, res) {
   // res.render('index', { title: 'Express' });
-  res.sendfile('../client/build/index.html');
+  res.sendfile(path.join(__dirname, '/../client/build/index.html'));
 });
 
 // socket.io events
