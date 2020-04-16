@@ -25,18 +25,24 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static('../client/build'));
 
-app.use('/', indexRouter);
+// app.use('*', indexRouter);
 app.use('/testAPI', testAPIRouter);
 
 // auth validation
-app.get('/auth', verifyAuthHttpWrapper((_,response) => response.sendStatus(200)));
+app.get('/api/auth', verifyAuthHttpWrapper((_,response) => response.sendStatus(200)));
 
 // db stuff
-app.get('/users', db.getUsers);
-app.get('/users/:id', db.getUserById);
-app.post('/users', verifyAuthHttpWrapper(db.createUser));
-app.put('/users/:id', db.updateUser);
-app.delete('/users/:id', db.deleteUser);
+app.get('/api/users', db.getUsers);
+app.get('/api/users/:id', db.getUserById);
+app.post('/api/users', verifyAuthHttpWrapper(db.createUser));
+app.put('/api/users/:id', db.updateUser);
+app.delete('/api/users/:id', db.deleteUser);
+
+// react app
+app.get('*', function(req, res) {
+  // res.render('index', { title: 'Express' });
+  res.sendfile('../client/build/index.html');
+});
 
 // socket.io events
 
@@ -76,11 +82,21 @@ io.on('connection', function(socket) {
   socket.on('joinGameRequest', function(data){
     const { token, playerId, gameId } = data;
     googleVerify(token)
-      .then(() => db.joinNewGame(playerId, gameId))
-      .then(() => {
-        socket.join(gameId);
-        socket.emit('joinGameSuccess', { gameId: gameId});
-        socket.to(gameId).emit('playerTwoHasJoined');
+      .then(() => db.joinGame(playerId, gameId))
+      .then(response => {
+        switch(response) {
+          case 'gameDoesNotExist':
+            socket.emit('gameDoesNotExist');
+          case 'joinedGameInProgress':
+            socket.join(gameId);
+            socket.emit('joinedGameInProgressSuccess', { gameId});
+            socket.to(gameId).emit('playerHasRejoined');
+          case'joinedNewGame':
+          default:
+            socket.join(gameId);
+            socket.emit('joinGameSuccess', { gameId});
+            socket.to(gameId).emit('playerTwoHasJoined');
+        }
       })
       .catch(error => {
         console.error('socket_joinGame_error', error);

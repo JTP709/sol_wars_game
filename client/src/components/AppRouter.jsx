@@ -64,10 +64,22 @@ const AppRouter = ({ isSignedIn, gameId }) => {
             { !isAuthenticated ? <Redirect to="/login" /> : <Users /> }
           </Route>
           <Route path="/gamesetup" >
-            { !isAuthenticated ? <Redirect to="/login" /> : <GameManagement /> }
+            {
+              !isAuthenticated 
+                ? <Redirect to="/login" /> 
+                : gameId
+                  ? <Redirect to='/warroom' />
+                  : <GameManagement />
+            }
           </Route>
           <Route path="/warroom" >
-            { !isAuthenticated && gameId ? <Redirect to="/login" /> : <WarRoom /> }
+            {
+              !isAuthenticated
+                ? <Redirect to="/login" />
+                : !gameId
+                  ? <Redirect to='/gamesetup' />
+                  : <WarRoom />
+            }
           </Route>
         </Switch>
 

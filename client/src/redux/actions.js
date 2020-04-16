@@ -26,11 +26,11 @@ export const validateGoogleSignIn = payload => {
 
   return dispatch => {
     axios.post(
-      'http://localhost:9000/users',
+      'http://localhost:9000/api/users',
       data,
       config
     ).then (() => {
-      dispatch(signInSuccess({ playerId: googleId }))
+      dispatch(signInSuccess(googleId))
     }).catch(error => {
       console.error('google_validate_sign_in_error: ', error);
       dispatch(signInFailure(error));

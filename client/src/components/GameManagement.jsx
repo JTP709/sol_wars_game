@@ -23,7 +23,7 @@ const GameManagement = ({ playerId, setGameId }) => {
     console.log('starting game ...')
     socket.emit('startGameRequest', {token, playerId});
     socket.on('gameStartSuccess', data => {
-      setGameId({ gameId: data.gameId });
+      setGameId(data.gameId);
       console.log('LET THE GAMES BEGIN!', data.gameId);
       history.push('/warroom')
     });
@@ -34,10 +34,15 @@ const GameManagement = ({ playerId, setGameId }) => {
     event.preventDefault();
     socket.emit('joinGameRequest', { token, playerId, gameId: joinGameId });
     socket.on('joinGameSuccess', data => {
-      setGameId({ gameId: data.gameId });
+      setGameId(data.gameId);
       console.log('TIME TO TEACH PLAYER ONE A LESSON!');
       history.push('/warroom')
     });
+    socket.on('joinedGameInProgressSuccess', data => {
+      setGameId(data.gameId);
+      console.log('YOU HAVE RETURNED TO THE MATCH!');
+      history.push('/warroom');
+    })
     socket.on('gameJoinError', () => console.error('There was an error on the server while trying to join the game.'));
   }
 
