@@ -69,7 +69,7 @@ io.on('connection', function(socket) {
   socket.on('startGameRequest', function(data){
     // console.log('data received: ', 'start game', data.token, data.playerId);
     googleVerify(data.token)
-      .then(() => db.createNewGame(data.playerId))
+      .then(() => db.createNewGame(data.playerId, data.playerUserName))
       .then(response => {
         socket.join(response.gameId);
         socket.emit('gameStartSuccess', { gameId: response.gameId});
@@ -81,22 +81,23 @@ io.on('connection', function(socket) {
   });
 
   socket.on('joinGameRequest', function(data){
-    const { token, playerId, gameId } = data;
+    const { token, playerId, gameId, playerUserName } = data;
     googleVerify(token)
-      .then(() => db.joinGame(playerId, gameId))
+      .then(() => db.joinGame(playerId, playerUserName, gameId))
       .then(response => {
-        switch(response) {
+        const { action, opponentUserName } = response;
+        switch(action) {
           case 'gameDoesNotExist':
             socket.emit('gameDoesNotExist');
           case 'joinedGameInProgress':
             socket.join(gameId);
-            socket.emit('joinedGameInProgressSuccess', { gameId});
-            socket.to(gameId).emit('playerHasRejoined');
+            socket.emit('joinedGameInProgressSuccess', { gameId, opponentUserName });
+            socket.to(gameId).emit('playerHasRejoined', { opponentUserName: playerUserName });
           case'joinedNewGame':
           default:
             socket.join(gameId);
-            socket.emit('joinGameSuccess', { gameId});
-            socket.to(gameId).emit('playerTwoHasJoined');
+            socket.emit('joinGameSuccess', { gameId, opponentUserName });
+            socket.to(gameId).emit('playerTwoHasJoined', { opponentUserName: playerUserName });
         }
       })
       .catch(error => {

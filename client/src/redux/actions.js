@@ -43,4 +43,21 @@ export const validateGoogleSignIn = payload => {
 export const setGameId = gameId => ({
   type: ACTIONS.SET_GAME_ID,
   payload: { gameId }
+});
+
+export const resetGameId = () => ({ type: ACTIONS.RESET_GAME_ID });
+
+export const setPlayerUserName = userName => ({
+  type: ACTIONS.SET_PLAYER_USER_NAME,
+  payload: { userName }
 })
+
+export const setRedTeamCommander = userName => ({
+type: ACTIONS.SET_RED_TEAM_COMMANDER,
+payload: { userName }
+});
+
+export const setBlueTeamCommander = userName => ({
+  type: ACTIONS.SET_BLUE_TEAM_COMMANDER,
+  payload: { userName }
+});

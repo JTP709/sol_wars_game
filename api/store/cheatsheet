@@ -1,0 +1,14 @@
+login 
+- psql -d sol_api -U sol_admin
+
+see available databases
+- \list
+
+see all tables
+- \dt
+
+see data from tables
+- SELECT * FROM <table>;
+
+add columns to a table
+- ALTER TABLE <table_name> ADD COLUMN <column_name> <data_type>

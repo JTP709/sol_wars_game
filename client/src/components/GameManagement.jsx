@@ -1,62 +1,73 @@
 import React, { useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import { connect } from 'react-redux';
 import socket from '../socket/socket';
 
-import { getPlayerId } from '../redux/selectors';
-import { setGameId } from '../redux/actions';
+import { getPlayerId, getGameId } from '../redux/selectors';
+import {
+  resetGameId,
+  setPlayerUserName
+} from '../redux/actions';
 
 const mapStateToProps = state => ({
-  playerId: getPlayerId(state)
+  playerId: getPlayerId(state),
+  gameId: getGameId
 });
 
 const mapDispatchToProps = {
-  setGameId
+  resetGameId,
+  setPlayerUserName
 }
 
-const GameManagement = ({ playerId, setGameId }) => {
+const GameManagement = ({
+  playerId,
+  resetGameId,
+  gameId,
+  setPlayerUserName
+}) => {
   const [joinGameId, setJoinGameId] = useState('');
+  const [joinGameName, setJoinGameName] = useState('');
+  const [startGameName, setStartGameName] = useState('');
   const token = localStorage.getItem('token');
-  const history = useHistory();
   
-  const startGame = () => {
+  const startGame = event => {
+    event.preventDefault();
     console.log('starting game ...')
-    socket.emit('startGameRequest', {token, playerId});
-    socket.on('gameStartSuccess', data => {
-      setGameId(data.gameId);
-      console.log('LET THE GAMES BEGIN!', data.gameId);
-      history.push('/warroom')
-    });
-    socket.on('gameStartError', () => console.error('There was an error on the server while trying to start the game.'));
+    setPlayerUserName(startGameName);
+    socket.emit('startGameRequest', {token, playerId, playerUserName: startGameName});
   }
   
   const joinGame = event => {
     event.preventDefault();
-    socket.emit('joinGameRequest', { token, playerId, gameId: joinGameId });
-    socket.on('joinGameSuccess', data => {
-      setGameId(data.gameId);
-      console.log('TIME TO TEACH PLAYER ONE A LESSON!');
-      history.push('/warroom')
-    });
-    socket.on('joinedGameInProgressSuccess', data => {
-      setGameId(data.gameId);
-      console.log('YOU HAVE RETURNED TO THE MATCH!');
-      history.push('/warroom');
-    })
-    socket.on('gameJoinError', () => console.error('There was an error on the server while trying to join the game.'));
+    setPlayerUserName(joinGameName);
+    socket.emit('joinGameRequest', { token, playerId, gameId: joinGameId, playerUserName: joinGameName });
   }
 
-  const handleChange = event => {
-    setJoinGameId(event.target.value);
-  }
+  const handleStartNameChange = event => setStartGameName(event.target.value);
+  
+  const handleJoinGameIdChange = event => setJoinGameId(event.target.value);
+
+  const handleJoinGameNameChange = event => setJoinGameName(event.target.value);
+
+  const leaveGame = () => resetGameId();
 
   return <div>
-    <button onClick={startGame}>Start A New Game</button>
+    { gameId ? <button onClick={leaveGame}>Leave Game</button> : null }
+    <form onSubmit={startGame}>
+      <label>
+        Name:
+        <input type='text' value={startGameName} onChange={handleStartNameChange} />
+      </label>
+      <button type='submit' value='Submit'>Start A New Game</button>
+    </form>
     <hr/>
     <form onSubmit={joinGame}>
       <label>
         Game ID:
-        <input type='text' value={joinGameId} onChange={handleChange} />
+        <input type='text' value={joinGameId} onChange={handleJoinGameIdChange} />
+      </label>
+      <label>
+        Name:
+        <input type='text' value={joinGameName} onChange={handleJoinGameNameChange} />
       </label>
       <button type='submit' value='Submit'>Join Game</button>
     </form>

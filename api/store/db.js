@@ -43,7 +43,7 @@ const updateUser = (request, response) => {
     'UPDATE users SET name = $1, email = $2 WHERE id = $3',
     [name, email, id],
     (error, results) => {
-      if (error) { console.error(error) }
+      if (error) { throw error }
       response.status(200).send(`User #${id} updated with name: ${name}, email: ${email}`);
     }
   )
@@ -59,31 +59,36 @@ const deleteUser = (request, response) => {
 }
 
 // Socket Requests
-const createNewGame = playerId => pool.query('INSERT INTO games (player_one_id, player_one_team) VALUES ($1, $2) RETURNING id', [playerId, 'Red'])
+const createNewGame = (playerId, playerUserName) => pool.query('INSERT INTO games (player_one_id, player_one_user_name, player_one_team) VALUES ($1, $2, $3) RETURNING id', [playerId, playerUserName, 'Red'])
     .then(results => ({ gameId: results.rows[0].id }))
     .catch(error => {
-      console.error(error);
-      return error
+      throw error
     });
 
-const joinGame = (playerId, gameId) => pool.query('SELECT * FROM games WHERE id = $1', [gameId])
+const joinGame = (playerId, playerUserName, gameId) => pool.query('SELECT * FROM games WHERE id = $1', [gameId])
     .then(results => {
       const gameExists = results.rows && results.rows.length !== 0;
-      const playerAssignedToTeam = gameExists && results.rows[0].player_one_id === playerId || results.rows[0].player_two_id === playerId;
+      const data = results.rows[0];
+      const playerAssignedToTeam = gameExists && data.player_one_id === playerId || data.player_two_id === playerId;
       if (!gameExists) {
-        return 'gameDoesNotExist'
+        return { action: 'gameDoesNotExist' }
       }
       if (playerAssignedToTeam) {
-        return 'joinedGameInProgress'
+        return { 
+          action: 'joinedGameInProgress',
+          opponentUserName: data.player_one_user_name
+        }
       }
-      return joinNewGame(playerId, gameId);
+      return joinNewGame(playerId, playerUserName, gameId, data.player_one_user_name);
     });
 
-const joinNewGame = (playerId, gameId) => pool.query('UPDATE games SET player_two_id = $1, player_two_team = $2 WHERE id = $3', [playerId, 'Blue', gameId])
-    .then(() => 'joinedNewGame')
+const joinNewGame = (playerId, playerUserName, gameId, playerOneUserName) => pool.query('UPDATE games SET player_two_id = $1, player_two_user_name = $2, player_two_team = $3 WHERE id = $4', [playerId, playerUserName, 'Blue', gameId])
+    .then(results => ({ 
+      action: 'joinedNewGame',
+      opponentUserName: playerOneUserName
+    }))
     .catch(error => {
-      console.error(error);
-      return error
+      throw error
     });
 
 module.exports = {
