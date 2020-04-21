@@ -1,24 +1,25 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { getGameId, getRedTeamCommander, getBlueTeamCommander } from '../redux/selectors';
+import { getGameId, getRedPlayer, getBluePlayer } from '../redux/selectors';
 
 import './WarRoom.css';
 
 const mapStateToProps = state => ({
   gameId: getGameId(state),
-  redTeamCommander: getRedTeamCommander(state),
-  blueTeamCommander: getBlueTeamCommander(state)
+  redPlayer: getRedPlayer(state),
+  bluePlayer: getBluePlayer(state)
 })
 
-const WarRoom = ({ gameId, redTeamCommander, blueTeamCommander }) => {
+const WarRoom = ({ gameId, redPlayer, bluePlayer }) => {
 
   return <div>
     <h1>WAR ROOM</h1>
     <h2><i>"There's no fighting in the war room!"</i></h2>
+    {/* { <h2>WAITING FOR OPPOSING PLAYER TO JOIN</h2> } */}
     <div>
-      <h3>Red Team Commander: { redTeamCommander }</h3>
-      <h3>Blue Team Commander: { blueTeamCommander }</h3>
+      <h3>Red Team Commander: { redPlayer }</h3>
+      <h3>Blue Team Commander: { bluePlayer }</h3>
       <h3>Game ID: { gameId }</h3>
       <table>
         <thead>

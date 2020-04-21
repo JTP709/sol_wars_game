@@ -1,81 +1,112 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
 import socket from '../socket/socket';
 import { useHistory } from 'react-router-dom';
 
 import {
   setGameId,
-  setRedTeamCommander,
-  setBlueTeamCommander
+  setRedPlayer,
+  setBluePlayer,
+  setGameInProgressTrue,
+  setGameInProgressFalse
 } from '../redux/actions';
-
-import { getPlayerUserName } from '../redux/selectors';
 
 import AppRouter from './AppRouter';
 
-const mapStateToProps = state => ({
-  playerUserName: getPlayerUserName(state)
-});
-
 const mapDispatchToProps = {
   setGameId,
-  setRedTeamCommander,
-  setBlueTeamCommander
+  setRedPlayer,
+  setBluePlayer,
+  setGameInProgressTrue,
+  setGameInProgressFalse
 };
 
 const SocketController = ({
-  playerUserName,
   setGameId,
-  setRedTeamCommander,
-  setBlueTeamCommander
+  setRedPlayer,
+  setBluePlayer,
+  setGameInProgressTrue,
+  setGameInProgressFalse
 }) => {
   const history = useHistory();
+  
+  const setPlayerNames = data => {
+    data.redPlayerName && setRedPlayer(data.redPlayerName);
+    data.bluePlayerName && setBluePlayer(data.bluePlayerName);
+  }
+  
+  useEffect(() => {
+    socket.on('gameStartSuccess', data => {
+      setPlayerNames(data);
+      setGameId(data.gameId);
+      setGameInProgressTrue();
+      console.log('LET THE GAMES BEGIN!', data.gameId);
+      history.push('/warroom')
+    });
+  
+    socket.on('gameStartError', () => console.error('There was an error on the server while trying to start the game.'));
+  
+    socket.on('joinGameSuccess', data => {
+      setPlayerNames(data);
+      setGameId(data.gameId);
+      setGameInProgressTrue();
+      console.log('TIME TO TEACH PLAYER ONE A LESSON!');
+      history.push('/warroom')
+    });
 
-  socket.on('gameStartSuccess', data => {
-    setRedTeamCommander(playerUserName);
-    setGameId(data.gameId);
-    console.log('LET THE GAMES BEGIN!', data.gameId);
-    history.push('/warroom')
-  });
+    socket.on('joinedGameInProgressSuccess', data => {
+      setPlayerNames(data);
+      setGameId(data.gameId);
+      setGameInProgressTrue();
+      console.log('YOU HAVE RETURNED TO THE MATCH!');
+      history.push('/warroom');
+    });
+  
+    socket.on('gameDoesNotExist', () =>{
+      console.log('That Game does not exist or is no longer in progress.')
+    });
+  
+    socket.on('gameJoinError', () => console.error('There was an error on the server while trying to join the game.'));
+  
+    socket.on('playerHasJoined', data => { 
+      console.log('PLAYER TWO HAS ENTERED THE ARENA!');
+      setPlayerNames(data);
+      setGameInProgressTrue();
+    });
+    
+    socket.on('playerHasRejoined', data => {
+      console.log('YOUR OPPONENT HAS RETURNED TO THE ARENA!');
+      setPlayerNames(data);
+      setGameInProgressTrue();
+    });
+  
+    socket.on('playerDisconnected', () => {
+      console.log('Your opponent has disconnected.');
+      setGameInProgressFalse();
+    });
+  
+    socket.on('playerLeft', () => {
+      console.log('Your opponent has left the match.');
+      setGameInProgressFalse();
+    });
 
-  socket.on('gameStartError', () => console.error('There was an error on the server while trying to start the game.'));
-
-  socket.on('joinGameSuccess', data => {
-    console.log('Join Game Data: ', data);
-    setBlueTeamCommander(playerUserName);
-    setRedTeamCommander(data.opponentUserName);
-    setGameId(data.gameId);
-    console.log('TIME TO TEACH PLAYER ONE A LESSON!');
-    history.push('/warroom')
-  });
-  socket.on('joinedGameInProgressSuccess', data => {
-    console.log('JIP data: ', data)
-    setBlueTeamCommander(playerUserName);
-    setRedTeamCommander(data.opponentUserName);
-    setGameId(data.gameId);
-    console.log('YOU HAVE RETURNED TO THE MATCH!');
-    history.push('/warroom');
-  });
-
-  socket.on('gameDoesNotExist', () =>{
-    console.log('That Game does not exist or is no longer in progress.')
-  });
-
-  socket.on('gameJoinError', () => console.error('There was an error on the server while trying to join the game.'));
-
-  socket.on('playerTwoHasJoined', data => { 
-    console.log('player two joined data: ', data);
-    console.log('PLAYER TWO HAS ENTERED THE ARENA!');
-    setBlueTeamCommander(data.opponentUserName);
+    return () => {
+      socket.off('gameStartSuccess');
+      socket.off('gameStartError');
+      socket.off('joinGameSuccess');
+      socket.off('joinedGameInProgressSuccess');
+      socket.off('gameDoesNotExist');
+      socket.off('gameJoinError');
+      socket.off('playerHasJoined');
+      socket.off('playerHasRejoined');
+      socket.off('playerDisconnected');
+      socket.off('playerLeft');
+    }
   });
   
-  socket.on('playerHasRejoined', data => {
-    console.log('player two has RE joined data: ', data);
-    console.log('YOUR OPPONENT HAS RETURNED TO THE ARENA!');
-    setBlueTeamCommander(data.opponentUserName);
-  });
+
 
   return <AppRouter />
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SocketController)
+export default connect(null, mapDispatchToProps)(SocketController)

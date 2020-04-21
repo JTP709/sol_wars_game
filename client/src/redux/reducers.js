@@ -4,9 +4,10 @@ const defaultState = {
   isSignedIn: false,
   playerId: null,
   gameId: null,
-  redTeamCommander: '',
-  blueTeamCommander: '',
-  playerUserName: ''
+  inProgress: false,
+  turn: 0,
+  redPlayer: '',
+  bluePlayer: ''
 }
 
 export default (state = defaultState, action) => {
@@ -36,20 +37,36 @@ export default (state = defaultState, action) => {
         ...state,
         gameId: null
       }
-    case ACTIONS.SET_PLAYER_USER_NAME:
+    case ACTIONS.SET_RED_PLAYER:
       return {
         ...state,
-        playerUserName: action.payload.userName
+        redPlayer: action.payload.userName
       }
-    case ACTIONS.SET_RED_TEAM_COMMANDER:
+    case ACTIONS.SET_BLUE_PLAYER:
       return {
         ...state,
-        redTeamCommander: action.payload.userName
+        bluePlayer: action.payload.userName
       }
-    case ACTIONS.SET_BLUE_TEAM_COMMANDER:
+    case ACTIONS.INCREMENT_TURN:
       return {
         ...state,
-        blueTeamCommander: action.payload.userName
+        turn: state.turn++
+      }
+    case ACTIONS.SET_GAME_IN_PROGRESS_TRUE:
+      return {
+        ...state,
+        inProgress: true
+      }
+    case ACTIONS.SET_GAME_IN_PROGRESS_FALSE:
+      return {
+        ...state,
+        inProgress: false
+      }
+    case ACTIONS.RESET_GAME_STATE:
+      return {
+        ...defaultState,
+        isSignedIn: state.isSignedIn,
+        playerId: state.playerId,
       }
     default:
       return state

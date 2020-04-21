@@ -1,0 +1,18 @@
+Game state
+  - Player 1 started Game
+  - Player 2 joins
+  - Player 1 leaves
+  - Player 2 leaves
+  - Player 1 rejoins
+  - Player 2 rejoins
+
+inProgress: boolean
+turn: int
+redPlayer: string
+bluePlayer: string
+
+
+
+actions are firing multiple times - including console logs in socket events
+
+Need to figure out how to check if socket is in the room on reconnect

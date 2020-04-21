@@ -59,37 +59,65 @@ const deleteUser = (request, response) => {
 }
 
 // Socket Requests
-const createNewGame = (playerId, playerUserName) => pool.query('INSERT INTO games (player_one_id, player_one_user_name, player_one_team) VALUES ($1, $2, $3) RETURNING id', [playerId, playerUserName, 'Red'])
-    .then(results => ({ gameId: results.rows[0].id }))
+const createNewGame = (playerId, playerUserName, team = 'red') => {
+  // TODO fix this, it's gross
+  const userName = team === 'red' ? 'red_player_name' : 'blue_player_name';
+  const userId = team === 'red' ? 'red_player_id' : 'blue_player_id';
+  const key = team === 'red' ? 'redPlayerName' : 'bluePlayerName';
+
+  return pool.query(`INSERT INTO games (${userId}, ${userName}) VALUES ($1, $2) RETURNING id`, [playerId, playerUserName])
+    .then(results => {
+      const { id } = results.rows[0];
+      return { 
+        gameId: id,
+        [key]: playerUserName
+      }
+    })
     .catch(error => {
       throw error
     });
+  };
 
 const joinGame = (playerId, playerUserName, gameId) => pool.query('SELECT * FROM games WHERE id = $1', [gameId])
     .then(results => {
       const gameExists = results.rows && results.rows.length !== 0;
       const data = results.rows[0];
-      const playerAssignedToTeam = gameExists && data.player_one_id === playerId || data.player_two_id === playerId;
+      const playerAssignedToTeam = gameExists && data.red_player_id === playerId || data.blue_player_id === playerId;
       if (!gameExists) {
         return { action: 'gameDoesNotExist' }
       }
       if (playerAssignedToTeam) {
         return { 
           action: 'joinedGameInProgress',
-          opponentUserName: data.player_one_user_name
+          bluePlayerName: data['blue_player_name'],
+          redPlayerName: data['red_player_name'],
+          gameId
         }
       }
-      return joinNewGame(playerId, playerUserName, gameId, data.player_one_user_name);
+      // TODO: defaults to red, need to finish
+      const playerOneTeam = 'red'
+      const opponentsUserName = data.red_player_name;
+
+      return joinNewGame(playerId, playerUserName, gameId, opponentsUserName);
     });
 
-const joinNewGame = (playerId, playerUserName, gameId, playerOneUserName) => pool.query('UPDATE games SET player_two_id = $1, player_two_user_name = $2, player_two_team = $3 WHERE id = $4', [playerId, playerUserName, 'Blue', gameId])
-    .then(results => ({ 
+const joinNewGame = (playerId, playerUserName, gameId,  opponentsUserName, opponentsTeam = 'red') => {
+  // TODO fix this, it's gross
+  const userName = opponentsTeam === 'blue' ? 'red_player_name' : 'blue_player_name';
+  const userId = opponentsTeam === 'blue' ? 'red_player_id' : 'blue_player_id';
+  const key = opponentsTeam === 'blue' ? 'redPlayerName' : 'bluePlayerName';
+  const opponentsKey = opponentsTeam === 'blue' ? 'bluePlayerName' : 'redPlayerName'
+  return pool.query(`UPDATE games SET ${userId} = $1, ${userName} = $2 WHERE id = $3`, [playerId, playerUserName, gameId])
+    .then(() => ({ 
       action: 'joinedNewGame',
-      opponentUserName: playerOneUserName
+      [key]: playerUserName,
+      [opponentsKey]: opponentsUserName,
+      gameId
     }))
     .catch(error => {
       throw error
     });
+  };
 
 module.exports = {
   getUsers,

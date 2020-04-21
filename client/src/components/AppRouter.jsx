@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { getIsSignedIn, getGameId } from '../redux/selectors';
-import { resetGameId } from '../redux/actions';
+import { resetGameState } from '../redux/actions';
 
 import Home from './Home';
 import HowToPlay from './HowToPlay';
@@ -15,6 +15,9 @@ import Login from './Login';
 import SignOutButton from './SignOutButton';
 import GameManagement from './GameManagement';
 import WarRoom from './WarRoom';
+import MyAccount from './MyAccount';
+
+import socket from '../socket/socket';
 
 const mapStateToProps = state => ({
   isSignedIn: getIsSignedIn(state),
@@ -22,14 +25,15 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  resetGameId
+  resetGameState
 }
 
-const AppRouter = ({ isSignedIn, gameId }) => {
+const AppRouter = ({ isSignedIn, gameId, resetGameState }) => {
   const isAuthenticated = isSignedIn && Boolean(localStorage.getItem('token'));
   const leaveGame = event => {
     event.preventDefault();
-    resetGameId();
+    socket.emit('leaveGame');
+    resetGameState();
   }
 
   const LeaveGameButton = () => <button onClick={ leaveGame }>Leave Game</button>
@@ -55,11 +59,12 @@ const AppRouter = ({ isSignedIn, gameId }) => {
               !isAuthenticated ? <Link to='/login'>Sign In</Link> : <SignOutButton />
             }
           </li>
-          <li>
-            {
-              gameId ? <LeaveGameButton/> : null
-            }
-          </li>
+          {
+            isAuthenticated ? <Link to='/account'>My Account</Link> : null
+          }
+          {
+            gameId ? <li><LeaveGameButton/></li> : null
+          }
         </ul>
       </nav>
 
@@ -82,6 +87,13 @@ const AppRouter = ({ isSignedIn, gameId }) => {
               : !gameId
                 ? <Redirect to='/gamesetup' />
                 : <WarRoom />
+          }
+        </Route>
+        <Route path='/account' >
+          {
+            !isAuthenticated
+              ? <Redirect to='/login' />
+              : <MyAccount />
           }
         </Route>
       </Switch>

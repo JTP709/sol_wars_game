@@ -3,10 +3,7 @@ import { connect } from 'react-redux';
 import socket from '../socket/socket';
 
 import { getPlayerId, getGameId } from '../redux/selectors';
-import {
-  resetGameId,
-  setPlayerUserName
-} from '../redux/actions';
+import { resetGameId } from '../redux/actions';
 
 const mapStateToProps = state => ({
   playerId: getPlayerId(state),
@@ -14,15 +11,13 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
-  resetGameId,
-  setPlayerUserName
+  resetGameId
 }
 
 const GameManagement = ({
   playerId,
   resetGameId,
-  gameId,
-  setPlayerUserName
+  gameId
 }) => {
   const [joinGameId, setJoinGameId] = useState('');
   const [joinGameName, setJoinGameName] = useState('');
@@ -32,13 +27,11 @@ const GameManagement = ({
   const startGame = event => {
     event.preventDefault();
     console.log('starting game ...')
-    setPlayerUserName(startGameName);
     socket.emit('startGameRequest', {token, playerId, playerUserName: startGameName});
   }
   
   const joinGame = event => {
     event.preventDefault();
-    setPlayerUserName(joinGameName);
     socket.emit('joinGameRequest', { token, playerId, gameId: joinGameId, playerUserName: joinGameName });
   }
 

@@ -6,6 +6,10 @@ export const getGameId = state => state.gameId;
 
 export const getPlayerUserName = state => state.playerUserName;
 
-export const getRedTeamCommander = state => state.redTeamCommander;
+export const getRedPlayer = state => state.redPlayer;
 
-export const getBlueTeamCommander = state => state.blueTeamCommander;
+export const getBluePlayer = state => state.bluePlayer;
+
+export const getTurn = state => state.turn;
+
+export const getInProgress = state => state.inProgress;
