@@ -45,6 +45,11 @@ export const setGameId = gameId => ({
   payload: { gameId }
 });
 
+export const setTurn = turn => ({
+  type: ACTIONS.SET_TURN,
+  payload: { turn }
+})
+
 export const resetGameId = () => ({ type: ACTIONS.RESET_GAME_ID });
 
 export const setRedPlayer = userName => ({
@@ -61,4 +66,15 @@ export const setGameInProgressTrue = () => ({ type: ACTIONS.SET_GAME_IN_PROGRESS
 
 export const setGameInProgressFalse = () => ({ type: ACTIONS.SET_GAME_IN_PROGRESS_FALSE });
 
-export const resetGameState = () => ({ type: ACTIONS.RESET_GAME_STATE })
+export const resetGameState = () => ({ type: ACTIONS.RESET_GAME_STATE });
+
+export const setCurrentPlayer = currentPlayer => ({
+  type: ACTIONS.SET_CURRENT_PLAYER,
+  payload: { currentPlayer }
+});
+
+export const setPlayerTeam = playerTeam => ({
+  type: ACTIONS.SET_PLAYER_TEAM,
+  payload: { playerTeam }
+});
+

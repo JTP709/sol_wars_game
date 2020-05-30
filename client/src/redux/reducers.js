@@ -3,11 +3,13 @@ import { ACTIONS } from './constants';
 const defaultState = {
   isSignedIn: false,
   playerId: null,
+  playerTeam: '',
   gameId: null,
   inProgress: false,
-  turn: 0,
   redPlayer: '',
-  bluePlayer: ''
+  bluePlayer: '',
+  turn: null,
+  currentPlayer: '',
 }
 
 export default (state = defaultState, action) => {
@@ -67,6 +69,21 @@ export default (state = defaultState, action) => {
         ...defaultState,
         isSignedIn: state.isSignedIn,
         playerId: state.playerId,
+      }
+    case ACTIONS.SET_TURN:
+      return {
+        ...state,
+        turn: action.payload.turn,
+      }
+    case ACTIONS.SET_PLAYER_TEAM:
+      return {
+        ...state,
+        playerTeam: action.payload.playerTeam
+      }
+    case ACTIONS.SET_CURRENT_PLAYER:
+      return {
+        ...state,
+        currentPlayer: action.payload.currentPlayer
       }
     default:
       return state

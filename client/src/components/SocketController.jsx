@@ -8,7 +8,10 @@ import {
   setRedPlayer,
   setBluePlayer,
   setGameInProgressTrue,
-  setGameInProgressFalse
+  setGameInProgressFalse,
+  setTurn,
+  setPlayerTeam,
+  setCurrentPlayer,
 } from '../redux/actions';
 
 import AppRouter from './AppRouter';
@@ -18,7 +21,10 @@ const mapDispatchToProps = {
   setRedPlayer,
   setBluePlayer,
   setGameInProgressTrue,
-  setGameInProgressFalse
+  setGameInProgressFalse,
+  setTurn,
+  setPlayerTeam,
+  setCurrentPlayer,
 };
 
 const SocketController = ({
@@ -26,7 +32,10 @@ const SocketController = ({
   setRedPlayer,
   setBluePlayer,
   setGameInProgressTrue,
-  setGameInProgressFalse
+  setGameInProgressFalse,
+  setTurn,
+  setPlayerTeam,
+  setCurrentPlayer,
 }) => {
   const history = useHistory();
   
@@ -39,6 +48,9 @@ const SocketController = ({
     socket.on('gameStartSuccess', data => {
       setPlayerNames(data);
       setGameId(data.gameId);
+      setTurn(data.turn);
+      setPlayerTeam(data.playerTeam);
+      setCurrentPlayer(data.currentPlayer);
       setGameInProgressTrue();
       console.log('LET THE GAMES BEGIN!', data.gameId);
       history.push('/warroom')
@@ -49,6 +61,9 @@ const SocketController = ({
     socket.on('joinGameSuccess', data => {
       setPlayerNames(data);
       setGameId(data.gameId);
+      setTurn(data.turn);
+      setPlayerTeam(data.playerTeam);
+      setCurrentPlayer(data.currentPlayer);
       setGameInProgressTrue();
       console.log('TIME TO TEACH PLAYER ONE A LESSON!');
       history.push('/warroom')
@@ -57,6 +72,9 @@ const SocketController = ({
     socket.on('joinedGameInProgressSuccess', data => {
       setPlayerNames(data);
       setGameId(data.gameId);
+      setTurn(data.turn);
+      setPlayerTeam(data.playerTeam);
+      setCurrentPlayer(data.currentPlayer);
       setGameInProgressTrue();
       console.log('YOU HAVE RETURNED TO THE MATCH!');
       history.push('/warroom');
@@ -90,6 +108,23 @@ const SocketController = ({
       setGameInProgressFalse();
     });
 
+    socket.on('playerNotInGame', () => {
+      alert('You\'re not in this game')
+    });
+
+    socket.on('validTurnSubmission', data => {
+      setTurn(data.turn);
+      setCurrentPlayer(data.currentPlayer);
+    });
+
+    socket.on('invalidTurnSubmission', () => {
+      alert('It\s not your turn :P')
+    });
+
+    socket.on('SERVER_ERROR', () => {
+      alert('server encountered an error :(')
+    });
+
     return () => {
       socket.off('gameStartSuccess');
       socket.off('gameStartError');
@@ -101,6 +136,9 @@ const SocketController = ({
       socket.off('playerHasRejoined');
       socket.off('playerDisconnected');
       socket.off('playerLeft');
+      socket.off('playerNotInGame')
+      socket.off('validTurnSubmission')
+      socket.off('invalidTurnSubmission')
     }
   });
   

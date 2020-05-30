@@ -81,8 +81,8 @@ io.on('connection', function(socket) {
         return db.createNewGame(data.playerId, data.playerUserName);
       })
       .then(response => {
+        socket.room = response.gameId;
         socket.join(response.gameId);
-        console.log('START GAME SUCCESS!');
         socket.emit('gameStartSuccess', response);
       })
       .catch(error => {
@@ -104,6 +104,7 @@ io.on('connection', function(socket) {
           socket.emit('gameDoesNotExist');
         }
         if (action === 'joinedGameInProgress') {
+          socket.room = gameId;
           socket.join(gameId);
           socket.emit('joinedGameInProgressSuccess', response);
           socket.to(gameId).emit('playerHasRejoined', response);
@@ -118,8 +119,31 @@ io.on('connection', function(socket) {
       .catch(error => {
         console.error('socket_joinGame_error', error);
         socket.emit('joinGameError', gameId);
+      });
+  });
+
+  socket.on('nextTurnSubmitted', function(data){
+    const { token, playerId, gameId } = data;
+    googleVerify(token)
+      .then(() => {
+        return db.validateNextTurn(playerId, gameId);
       })
-  })
+      .then(response => {
+        if (response.message === 'PLAYER_NOT_IN_GAME') {
+          socket.in(gameId).emit('playerNotInGame');
+          socket.emit('playerNotInGame');
+        } else if (response.message === 'VALID_TURN_SUBMISSION') {
+          socket.in(gameId).emit('validTurnSubmission', { currentPlayer: response.currentPlayer, turn: response.turn })
+          socket.emit('validTurnSubmission', { currentPlayer: response.currentPlayer, turn: response.turn })
+        } else if (response.message === 'INVALID_TURN_SUBMISSION') {
+          socket.in(gameId).emit('invalidTurnSubmission')
+          socket.emit('invalidTurnSubmission')
+        } else {
+          socket.in(gameId).emit('SERVER_ERROR')
+          socket.emit('SERVER_ERROR')
+        }
+      })
+  });
 });
 
 

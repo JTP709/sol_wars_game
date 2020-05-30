@@ -65,11 +65,14 @@ const createNewGame = (playerId, playerUserName, team = 'red') => {
   const userId = team === 'red' ? 'red_player_id' : 'blue_player_id';
   const key = team === 'red' ? 'redPlayerName' : 'bluePlayerName';
 
-  return pool.query(`INSERT INTO games (${userId}, ${userName}) VALUES ($1, $2) RETURNING id`, [playerId, playerUserName])
+  return pool.query(`INSERT INTO games (${userId}, ${userName}, current_player, turn_num) VALUES ($1, $2, $3, 1) RETURNING id, turn_num, current_player`, [playerId, playerUserName, team])
     .then(results => {
-      const { id } = results.rows[0];
+      const { id, turn_num, current_player } = results.rows[0];
       return { 
         gameId: id,
+        turn: turn_num,
+        currentPlayer: current_player,
+        playerTeam: team,
         [key]: playerUserName
       }
     })
@@ -79,27 +82,32 @@ const createNewGame = (playerId, playerUserName, team = 'red') => {
   };
 
 const joinGame = (playerId, playerUserName, gameId) => pool.query('SELECT * FROM games WHERE id = $1', [gameId])
-    .then(results => {
-      const gameExists = results.rows && results.rows.length !== 0;
-      const data = results.rows[0];
-      const playerAssignedToTeam = gameExists && data.red_player_id === playerId || data.blue_player_id === playerId;
-      if (!gameExists) {
-        return { action: 'gameDoesNotExist' }
+  .then(results => {
+    const gameExists = results.rows && results.rows.length !== 0;
+    const data = results.rows[0];
+    const playerAssignedToTeam = gameExists && data.red_player_id === playerId || data.blue_player_id === playerId;
+    
+    if (!gameExists) {
+      return { action: 'gameDoesNotExist' }
+    }
+    if (playerAssignedToTeam) {
+      const playerTeam = data.red_player_id === playerId ? 'red' : 'blue';
+      return { 
+        action: 'joinedGameInProgress',
+        bluePlayerName: data['blue_player_name'],
+        redPlayerName: data['red_player_name'],
+        gameId,
+        playerTeam,
+        currentPlayer: data.current_player,
+        turn: data.turn_num
       }
-      if (playerAssignedToTeam) {
-        return { 
-          action: 'joinedGameInProgress',
-          bluePlayerName: data['blue_player_name'],
-          redPlayerName: data['red_player_name'],
-          gameId
-        }
-      }
-      // TODO: defaults to red, need to finish
-      const playerOneTeam = 'red'
-      const opponentsUserName = data.red_player_name;
+    }
+    // TODO: defaults to red, need to finish
+    const playerOneTeam = 'red'
+    const opponentsUserName = data.red_player_name;
 
-      return joinNewGame(playerId, playerUserName, gameId, opponentsUserName);
-    });
+    return joinNewGame(playerId, playerUserName, gameId, opponentsUserName);
+  });
 
 const joinNewGame = (playerId, playerUserName, gameId,  opponentsUserName, opponentsTeam = 'red') => {
   // TODO fix this, it's gross
@@ -107,17 +115,64 @@ const joinNewGame = (playerId, playerUserName, gameId,  opponentsUserName, oppon
   const userId = opponentsTeam === 'blue' ? 'red_player_id' : 'blue_player_id';
   const key = opponentsTeam === 'blue' ? 'redPlayerName' : 'bluePlayerName';
   const opponentsKey = opponentsTeam === 'blue' ? 'bluePlayerName' : 'redPlayerName'
-  return pool.query(`UPDATE games SET ${userId} = $1, ${userName} = $2 WHERE id = $3`, [playerId, playerUserName, gameId])
-    .then(() => ({ 
+  return pool.query(`UPDATE games SET ${userId} = $1, ${userName} = $2 WHERE id = $3 RETURNING turn_num`, [playerId, playerUserName, gameId])
+    .then(results => ({ 
       action: 'joinedNewGame',
       [key]: playerUserName,
       [opponentsKey]: opponentsUserName,
-      gameId
+      gameId,
+      currentPlayer: results.rows[0].current_player,
+      playerTeam: opponentsTeam === 'red' ? 'blue' : 'red',
+      turn: results.rows[0].turn_num
     }))
     .catch(error => {
       throw error
     });
   };
+
+const validateNextTurn = (playerId, gameId) => {
+  return pool.query('SELECT * FROM games WHERE id = $1', [gameId])
+    .then(results => {
+      const { blue_player_id, red_player_id, current_player, turn_num } = results.rows[0];
+      let playerTeam;
+      if (blue_player_id === playerId) {
+        playerTeam = 'blue';
+      } else if (red_player_id === playerId) {
+        playerTeam = 'red';
+      } else {
+        return { message: 'PLAYER_NOT_IN_GAME' }
+      }
+
+      if (playerTeam === current_player) {
+        return { message: 'VALID_TURN_SUBMISSION', current_player, turn_num, gameId }
+      } else {
+        return { message: 'INVALID_TURN_SUBMISSION' }
+      }
+    })
+    .then(results => {
+      if (results.message !== 'VALID_TURN_SUBMISSION') {
+        return results
+      }
+      const { current_player, turn_num } = results;
+      const newCurrentPlayer = current_player === 'red' ? 'blue' : 'red';
+      const nextTurn = turn_num + 1;
+
+      return pool.query(`UPDATE games SET current_player = $1, turn_num = $2 WHERE id = $3 RETURNING turn_num, current_player`, [newCurrentPlayer, nextTurn, gameId])
+    })
+    .then(results => {
+      if (results.message === 'INVALID_TURN_SUBMISSION' || results.message === 'PLAYER_NOT_IN_GAME') {
+        return results
+      }
+      return {
+        message: 'VALID_TURN_SUBMISSION',
+        turn: results.rows[0].turn_num,
+        currentPlayer: results.rows[0].current_player
+      }
+    })
+    .catch(error => {
+      throw error
+    })
+}
 
 module.exports = {
   getUsers,
@@ -126,5 +181,6 @@ module.exports = {
   updateUser,
   deleteUser,
   createNewGame,
-  joinGame
+  joinGame,
+  validateNextTurn
 }
