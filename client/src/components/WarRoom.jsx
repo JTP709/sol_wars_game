@@ -37,7 +37,7 @@ const WarRoom = ({
 
   const submitTurn = event => {
     event.preventDefault();
-    socket.emit('nextTurnSubmitted', { token, gameId, playerId })
+    socket.emit('nextTurnRequest', { token, gameId, playerId })
   }
 
   const interactive = areBothPlayersPresent && isCurrentPlayer;

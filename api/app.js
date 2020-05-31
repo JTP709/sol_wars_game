@@ -122,7 +122,7 @@ io.on('connection', function(socket) {
       });
   });
 
-  socket.on('nextTurnSubmitted', function(data){
+  socket.on('nextTurnRequest', function(data){
     const { token, playerId, gameId } = data;
     googleVerify(token)
       .then(() => {
