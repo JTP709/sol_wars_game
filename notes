@@ -6,13 +6,147 @@ Game state
   - Player 1 rejoins
   - Player 2 rejoins
 
-inProgress: boolean
-turn: int
-redPlayer: string
-bluePlayer: string
+Board state
+  - locations
+    * affiliation
+    - navies
+      * inbound vs present
+      * inbound fleet timer
+      * affiliation
+    - industry
+      * in progress vs ready vs building
+      * in progress items timer
+  - combat state
+    * systems with two navies
+
+New Turn Steps:
+  - check for combat
+  - resolve combat
+  - build orders
+  - fleet orders
+
+Notes:
+  - players can only see industry and fleet status on systems they're in control of.
+
+schema: {
+  locations: {
+    planet_a: {
+      affiliation: 'red' || 'blue',
+      industry: {
+        size: 3, // number of industry spots
+        buildings: [
+          {
+            type: mine || shipyard || open,
+            status: building || mining || underConstruction
+            completionTurn: 1 //
+            product: ship-type || resource || null
+            productDestination: fleetName
+          }
+        ]
+      },
+      fleets: [ 'fleetName', 'fleetName' ]
+    }
+  },
+  fleets: {
+    red_fleet_1: {
+      transit: { 
+        inTransit: true,
+        arrivalDate: 9
+      },
+      strength: 3
+    }
+  }
+}
 
 
 
-actions are firing multiple times - including console logs in socket events
+locations table
+- id pkey
+- game_id fkey
+- location_name: varChar
+- affiliation: varChar: red, blue
+
+CREATE TABLE locations (
+  id SERIAL PRIMARY KEY,
+  game_id INTEGER REFERENCES games(id),
+  location_name VARCHAR(30),
+  affiliation VARCHAR(30)
+);
+
+industry table
+- id pkey
+- location_id fkey
+- state: varChar: underConstruction, producing
+- type: varChar: mine, shipYard
+- completion_date: int
+
+CREATE TABLE industry (
+  industry_id SERIAL PRIMARY KEY,
+  location_id INTEGER REFERENCES locations(id),
+  state VARCHAR(30),
+  type VARCHAR(30),
+  completion_date INTEGER
+);
+
+fleet table
+- fleet_id pkey
+- location_id fkey
+- name: varChar
+- strength: int
+- in_transit: bool
+- arrival_date: int
+
+CREATE TABLE fleet (
+  id SERIAL PRIMARY KEY,
+  location_id INTEGER REFERENCES locations(id),
+  name VARCHAR(30),
+  strength INTEGER,
+  in_transit BOOLEAN,
+  arrival_date INTEGER
+);
+
+default game state:
+
+locations
+- blue
+  - earth
+    - industry slots: 5
+    - 1 ship yard
+    - 1 fleet, 3 strength
+  - moon
+    - industry slots: 2
+  - venus
+    - industry slots: 3
+- red
+  - mars
+    - industry slots: 5
+    - 1 ship yard
+    - 1 fleet, 3 strength
+  - phobos
+    - industry slots: 2
+  - mercury
+    - industry slots: 3
+- green
+  - io
+    - industry slots: 2
+    - 1 fleet, 3 strength
+  - europa
+    - industry slots: 2
+    - 1 fleet, 3 strength
+  - ganymede
+    - industry slots: 2
+    - 1 fleet, 3 strength
+
+Locations will have industry slots that can either mine resources or build ships.
+
+The ship yard can designate which fleet they build ships for.
+
+Multiple fleets can occupy a location.
+
+When a new turn begins, game state will check if opposing fleets are present over a planet.
+
+
+
+NOTES:
 
 Need to figure out how to check if socket is in the room on reconnect

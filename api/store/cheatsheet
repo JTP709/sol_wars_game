@@ -1,20 +1,27 @@
 login 
-- psql -d sol_api -U sol_admin
+$ psql -d sol_api -U sol_admin
 
 see available databases
-- \list
+=> \list
 
 see all tables
-- \dt
+=> \dt
 
 see data from tables
-- SELECT * FROM <table>;
+=> SELECT * FROM <table>;
+
+create a table
+=> CREATE TABLE users (
+  ID SERIAL PRIMARY KEY,
+  name VARCHAR(30),
+  email VARCHAR(30)
+);
 
 add columns to a table
-- ALTER TABLE <table_name> ADD COLUMN <column_name> <data_type>;
+=> ALTER TABLE <table_name> ADD COLUMN <column_name> <data_type>;
 
 delete all data from a table
-- DELTE FROM <table_name>;
+=> DELTE FROM <table_name>;
 
 drop column
-- ALTER TABLE <table_name> DROP COLUMN <column_name>;
+=> ALTER TABLE <table_name> DROP COLUMN <column_name>;
